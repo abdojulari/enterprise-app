@@ -1,0 +1,60 @@
+// Main SCSS file for Enterprise App
+// This file contains global styles and Vuetify customizations
+
+// Import Vuetify styles (handled in nuxt.config.ts)
+// Import MDI icons (handled in nuxt.config.ts)
+
+// Global styles
+html, body {
+  font-family: 'Roboto', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// Custom enterprise styles
+.enterprise-card {
+  border-radius: 12px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.enterprise-btn {
+  text-transform: none !important;
+  border-radius: 8px !important;
+}
+
+// Responsive utilities
+.mobile-hidden {
+  @media (max-width: 960px) {
+    display: none !important;
+  }
+}
+
+.desktop-hidden {
+  @media (min-width: 961px) {
+    display: none !important;
+  }
+}
+
+// Loading states
+.loading-fade {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+// Custom scrollbar
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}

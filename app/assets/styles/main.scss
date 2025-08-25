@@ -1,0 +1,205 @@
+// Main SCSS file for Enterprise App
+// Professional enterprise-grade styling
+
+// Import Vuetify styles (handled in nuxt.config.ts)
+// Import MDI icons (handled in nuxt.config.ts)
+
+// Global styles
+html, body {
+  font-family: 'Inter', 'Roboto', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #fafafa;
+}
+
+// Professional enterprise styles
+.enterprise-card {
+  border-radius: 16px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  transition: all 0.3s ease !important;
+  
+  &:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12) !important;
+    transform: translateY(-2px) !important;
+  }
+}
+
+.enterprise-btn {
+  text-transform: none !important;
+  border-radius: 12px !important;
+  font-weight: 600 !important;
+  padding: 12px 24px !important;
+  transition: all 0.2s ease !important;
+  
+  &:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(var(--v-theme-primary), 0.3) !important;
+  }
+}
+
+// Professional navigation styling
+.enterprise-nav {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  border-right: none !important;
+  
+  .v-list-item {
+    border-radius: 12px !important;
+    margin: 4px 8px !important;
+    
+    &.v-list-item--active {
+      background: rgba(255, 255, 255, 0.15) !important;
+      backdrop-filter: blur(10px) !important;
+    }
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.1) !important;
+    }
+  }
+  
+  .v-list-item-title {
+    color: white !important;
+    font-weight: 500 !important;
+  }
+  
+  .v-icon {
+    color: rgba(255, 255, 255, 0.9) !important;
+  }
+}
+
+.enterprise-app-bar {
+  backdrop-filter: blur(20px) !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+
+.enterprise-title {
+  font-weight: 700 !important;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+
+.enterprise-subtitle {
+  color: rgba(0, 0, 0, 0.6) !important;
+  font-weight: 400 !important;
+}
+
+// Enhanced data table styling
+.v-data-table {
+  border-radius: 16px !important;
+  overflow: hidden !important;
+  
+  .v-data-table__th {
+    background-color: rgba(var(--v-theme-primary), 0.05) !important;
+    font-weight: 600 !important;
+    border-bottom: 2px solid rgba(var(--v-theme-primary), 0.1) !important;
+  }
+  
+  .v-data-table__tr:hover {
+    background-color: rgba(var(--v-theme-primary), 0.02) !important;
+  }
+}
+
+// Professional form styling
+.v-text-field, .v-select, .v-textarea {
+  .v-field {
+    border-radius: 12px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+    transition: all 0.2s ease !important;
+    
+    &:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    &.v-field--focused {
+      box-shadow: 0 4px 20px rgba(var(--v-theme-primary), 0.2) !important;
+    }
+  }
+}
+
+// Professional chip styling
+.v-chip {
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  padding: 0 12px !important;
+}
+
+// Professional alert styling
+.v-alert {
+  border-radius: 12px !important;
+  border-left: 4px solid currentColor !important;
+}
+
+// Responsive utilities
+.mobile-hidden {
+  @media (max-width: 960px) {
+    display: none !important;
+  }
+}
+
+.desktop-hidden {
+  @media (min-width: 961px) {
+    display: none !important;
+  }
+}
+
+// Loading states
+.loading-fade {
+  opacity: 0.6;
+  pointer-events: none;
+  filter: blur(0.5px);
+}
+
+// Professional scrollbar
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 4px;
+  
+  &:hover {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+  }
+}
+
+// Enhanced animations
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-in-up {
+  animation: slideInUp 0.3s ease-out;
+}
+
+// Professional spacing
+.page-padding {
+  padding: 32px !important;
+  
+  @media (max-width: 960px) {
+    padding: 16px !important;
+  }
+}
+
+// Glass morphism effects
+.glass-card {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
