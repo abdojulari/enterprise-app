@@ -118,19 +118,39 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useAuthStore } from '~/stores/auth'
 import { useNotificationStore } from '~/stores/notification'
 
+definePageMeta({
+  middleware: 'auth'
+})
+
+const authStore = useAuthStore()
 const notificationStore = useNotificationStore()
 const loading = ref(false)
 
 const profile = ref({
-  name: 'John Doe',
-  email: 'john@example.com',
-  bio: '',
-  website: '',
-  location: '',
-  avatar: null
+  name: authStore.user?.name || authStore.user?.email?.split('@')[0] || 'User',
+  email: authStore.user?.email || '',
+  bio: authStore.user?.bio || '',
+  website: authStore.user?.website || '',
+  location: authStore.user?.location || '',
+  avatar: authStore.user?.avatar || authStore.user?.picture || null
+})
+
+// Update profile when auth store changes
+onMounted(() => {
+  if (authStore.user) {
+    profile.value = {
+      name: authStore.user.name || authStore.user.email?.split('@')[0] || 'User',
+      email: authStore.user.email || '',
+      bio: authStore.user.bio || '',
+      website: authStore.user.website || '',
+      location: authStore.user.location || '',
+      avatar: authStore.user.avatar || authStore.user.picture || null
+    }
+  }
 })
 
 const passwords = ref({
@@ -149,8 +169,8 @@ const userInitials = computed(() => {
 const saveProfile = async () => {
   try {
     loading.value = true
-    // TODO: Implement actual profile save
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    const { put } = useApi()
+    await put('/user/profile', profile.value)
     notificationStore.success('Profile saved successfully')
   } catch (error) {
     notificationStore.error('Failed to save profile')

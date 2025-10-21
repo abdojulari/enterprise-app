@@ -50,13 +50,17 @@ export const useUIStore = defineStore('ui', {
       {
         title: 'Campaigns',
         to: '/campaigns',
-        icon: 'mdi-email-outline',
-        badge: 2
+        icon: 'mdi-email-outline'
       },
       {
         title: 'Leads',
         to: '/leads',
         icon: 'mdi-account-multiple'
+      },
+      {
+        title: 'Scraping',
+        to: '/scraping',
+        icon: 'mdi-web-check'
       },
       {
         title: 'Stats',

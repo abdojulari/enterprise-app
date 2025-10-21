@@ -19,7 +19,7 @@
       </v-btn>
     </div>
     
-    <v-card>
+    <v-card class="mb-6 elevation-6" flat >
       <v-data-table
         v-model="selectedCampaigns"
         :headers="headers"
@@ -30,7 +30,7 @@
       >
         <template #item.status="{ item }">
           <v-chip
-            :color="getStatusColor(item.status)"
+            :color="getStatusColor(item?.status)"
             size="small"
           >
             {{ item.status }}
@@ -91,7 +91,7 @@
             variant="text"
             size="small"
             color="error"
-            @click="deleteCampaign(item)"
+            @click="handleDeleteCampaign(item)"
           />
         </template>
       </v-data-table>
@@ -217,7 +217,7 @@
 
     <!-- Campaign Stats Dialog -->
     <v-dialog v-model="showStatsDialog" max-width="800">
-      <v-card>
+      <v-card class="mb-6 elevation-6" flat >
         <v-card-title>Campaign Statistics</v-card-title>
         <v-card-text v-if="campaignStats">
           <v-row>
@@ -276,8 +276,24 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useNotificationStore } from '~/stores/notification'
+import { useEmailAutomation } from '~/composables/useEmailAutomation'
+
+definePageMeta({
+  middleware: 'auth'
+})
 
 const notificationStore = useNotificationStore()
+const {
+  getCampaigns,
+  createCampaign,
+  deleteCampaign,
+  sendCampaignToAll,
+  sendTestCampaign,
+  getCampaignStats,
+  deleteCampaignsBulk,
+  getLeadCount
+} = useEmailAutomation()
+
 const loading = ref(false)
 const saving = ref(false)
 const showNewDialog = ref(false)
@@ -350,12 +366,11 @@ onMounted(async () => {
 const loadCampaigns = async () => {
   try {
     loading.value = true
-    const response = await fetch('/api/campaigns/')
-    if (!response.ok) throw new Error('Failed to load campaigns')
-    campaigns.value = await response.json()
-  } catch (error) {
+    campaigns.value = await getCampaigns()
+  } catch (error: any) {
     console.error('Failed to load campaigns:', error)
     notificationStore.error('Failed to load campaigns')
+    campaigns.value = []
   } finally {
     loading.value = false
   }
@@ -369,22 +384,13 @@ const saveCampaign = async () => {
 
   try {
     saving.value = true
-    const response = await fetch('/api/campaigns/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        name: campaignForm.value.name,
-        subject: campaignForm.value.subject,
-        city_filter: campaignForm.value.city_filter || null,
-        template: campaignForm.value.template
-      })
+    await createCampaign({
+      name: campaignForm.value.name,
+      subject: campaignForm.value.subject,
+      city_filter: campaignForm.value.city_filter || null,
+      template: campaignForm.value.template
     })
 
-    if (!response.ok) throw new Error('Failed to save campaign')
-
-    const campaign = await response.json()
     await loadCampaigns()
     showNewDialog.value = false
     notificationStore.success('Campaign created successfully')
@@ -398,7 +404,7 @@ const saveCampaign = async () => {
       rate_limit_per_minute: 60
     }
     editingCampaign.value = null
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to save campaign:', error)
     notificationStore.error('Failed to save campaign')
   } finally {
@@ -414,36 +420,18 @@ const sendCampaign = async (campaign: any) => {
     console.log('Sending campaign to all leads:', campaign.id)
     
     // Get lead count first
-    const leadsResponse = await fetch(`/api/upload/leads/count`)
-    const leadsData = await leadsResponse.json()
+    const leadsData = await getLeadCount()
     
     if (!confirm(`This will send to ${leadsData.count} leads. Are you sure?`)) {
       loading.value = false
       return
     }
     
-    const response = await fetch(`/api/campaigns/${campaign.id}/send`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': '*/*'
-      },
-      body: JSON.stringify({
-        city_filter: campaign.city_filter || null
-      })
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(errorData.detail || 'Failed to send campaign')
-    }
-
-    const result = await response.json()
+    const result = await sendCampaignToAll(campaign.id, campaign.city_filter || undefined)
     console.log('Send response:', result)
     
     // Check initial stats
-    const statsResponse = await fetch(`/api/campaigns/${campaign.id}/stats`)
-    const stats = await statsResponse.json()
+    const stats = await getCampaignStats(campaign.id)
     
     if (stats.successful_sends > 0) {
       notificationStore.success('Campaign started sending successfully')
@@ -454,8 +442,7 @@ const sendCampaign = async (campaign: any) => {
     // Reload campaigns and check stats again after delay
     await loadCampaigns()
     setTimeout(async () => {
-      const updatedStatsResponse = await fetch(`/api/campaigns/${campaign.id}/stats`)
-      const updatedStats = await updatedStatsResponse.json()
+      const updatedStats = await getCampaignStats(campaign.id)
       
       if (updatedStats.successful_sends > 0) {
         notificationStore.success(`Campaign sending: ${updatedStats.successful_sends} emails delivered`)
@@ -464,7 +451,7 @@ const sendCampaign = async (campaign: any) => {
       await loadCampaigns()
       await viewStats(campaign)
     }, 5000)
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to send campaign:', error)
     notificationStore.error('Failed to send campaign')
   } finally {
@@ -475,13 +462,9 @@ const sendCampaign = async (campaign: any) => {
 const viewStats = async (campaign: any) => {
   try {
     loading.value = true
-    const response = await fetch(`/api/campaigns/${campaign.id}/stats`)
-    
-    if (!response.ok) throw new Error('Failed to load campaign stats')
-    
-    campaignStats.value = await response.json()
+    campaignStats.value = await getCampaignStats(campaign.id)
     showStatsDialog.value = true
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to load campaign stats:', error)
     notificationStore.error('Failed to load campaign stats')
   } finally {
@@ -522,43 +505,13 @@ const sendTestEmail = async () => {
     })
     
     // Send test preview using the test endpoint
-    const response = await fetch(`/api/campaigns/${testingCampaign.value.id}/test`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': '*/*'
-      },
-      body: JSON.stringify({
-        test_email: testEmail.value
-      })
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(errorData.detail || 'Failed to send test email')
-    }
-
-    const result = await response.json()
-    console.log('Test send response:', result)
+    const data = await sendTestCampaign(testingCampaign.value.id, testEmail.value)
+    console.log('Test send response:', data)
     
-    // Log the full request that was sent
-    console.log('Request details:', {
-      url: `/api/campaigns/${testingCampaign.value.id}/send`,
-      body: {
-        test_email: testEmail.value,
-        city_filter: testingCampaign.value.city_filter || null
-      }
-    })
-    
-    // Check if the email was actually sent
-    const statsResponse = await fetch(`/api/campaigns/${testingCampaign.value.id}/stats`)
-    const stats = await statsResponse.json()
-    
-    const data = await response.json()
     notificationStore.success(`Preview sent to ${testEmail.value} using sample data: ${data.sample_data.first_name} ${data.sample_data.last_name} from ${data.sample_data.city}`)
     notificationStore.info('This is just a preview. Use "Send Campaign" when ready to send to actual leads.')
     showTestDialog.value = false
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to send test email:', error)
     notificationStore.error('Failed to send test email: ' + error.message)
   } finally {
@@ -568,20 +521,15 @@ const sendTestEmail = async () => {
 
 const selectedCampaigns = ref<number[]>([])
 
-const deleteCampaign = async (campaign: any) => {
+const handleDeleteCampaign = async (campaign: any) => {
   if (!confirm('Are you sure you want to delete this campaign?')) return
 
   try {
     loading.value = true
-    const response = await fetch(`/api/campaigns/${campaign.id}`, {
-      method: 'DELETE'
-    })
-
-    if (!response.ok) throw new Error('Failed to delete campaign')
-
+    await deleteCampaign(campaign.id)
     await loadCampaigns()
     notificationStore.success('Campaign deleted successfully')
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to delete campaign:', error)
     notificationStore.error('Failed to delete campaign')
   } finally {
@@ -595,26 +543,16 @@ const deleteSelectedCampaigns = async () => {
     return
   }
 
-  if (!confirm(`Are you sure you want to delete ${selectedCampaigns.value.length} campaigns?`)) return
+  const count = selectedCampaigns.value.length
+  if (!confirm(`Are you sure you want to delete ${count} campaigns?`)) return
 
   try {
     loading.value = true
-    const response = await fetch('/api/campaigns/bulk', {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        campaign_ids: selectedCampaigns.value
-      })
-    })
-
-    if (!response.ok) throw new Error('Failed to delete campaigns')
-
+    await deleteCampaignsBulk(selectedCampaigns.value)
     await loadCampaigns()
     selectedCampaigns.value = []
-    notificationStore.success(`${selectedCampaigns.value.length} campaigns deleted successfully`)
-  } catch (error) {
+    notificationStore.success(`${count} campaigns deleted successfully`)
+  } catch (error: any) {
     console.error('Failed to delete campaigns:', error)
     notificationStore.error('Failed to delete campaigns')
   } finally {

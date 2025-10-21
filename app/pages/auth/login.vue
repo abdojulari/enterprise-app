@@ -100,7 +100,7 @@
                     Google
                   </VBtn>
                   
-                  <VBtn
+                  <!-- <VBtn
                     variant="outlined"
                     size="large"
                     class="flex-grow-1"
@@ -108,7 +108,7 @@
                     @click="loginWithMicrosoft"
                   >
                     Microsoft
-                  </VBtn>
+                  </VBtn> -->
                 </div>
               </VForm>
             </VCardText>
@@ -157,6 +157,9 @@ definePageMeta({
 const authStore = useAuthStore()
 const notificationStore = useNotificationStore()
 
+// API composable
+const { get } = useApi()
+
 // Computed from stores
 const isAuthenticated = computed(() => authStore.isAuthenticated)
 
@@ -204,7 +207,7 @@ const handleLogin = async () => {
     const route = useRoute()
     const redirect = route.query.redirect as string
     
-    await router.push(redirect || '/')
+    await router.push(redirect || '/dashboard')
   } catch (err: any) {
     console.error('Login error:', err)
     
@@ -219,18 +222,54 @@ const handleLogin = async () => {
   }
 }
 
-const loginWithGoogle = () => {
-  notificationStore.error('Not Implemented', 'Google OAuth integration pending API implementation')
+const loginWithGoogle = async () => {
+  try {
+    loading.value = true
+    
+    // Get Google OAuth URL from backend
+    const response = await get<{ url: string }>('/api/auth/google/url', {
+      state: 'login'
+    })
+    
+    if (response.success && response.data?.url) {
+      // Redirect to Google OAuth
+      window.location.href = response.data.url
+    } else {
+      throw new Error(response.message || 'Failed to get Google OAuth URL')
+    }
+  } catch (err: any) {
+    console.error('Google OAuth error:', err)
+    notificationStore.error('OAuth Error', err.data?.message || err.message || 'Failed to initialize Google sign in')
+    loading.value = false
+  }
 }
 
-const loginWithMicrosoft = () => {
-  notificationStore.error('Not Implemented', 'Microsoft OAuth integration pending API implementation')
+const loginWithMicrosoft = async () => {
+  try {
+    loading.value = true
+    
+    // Get Microsoft OAuth URL from backend
+    const response = await get<{ url: string }>('/api/auth/microsoft/url', {
+      state: 'login'
+    })
+    
+    if (response.success && response.data?.url) {
+      // Redirect to Microsoft OAuth
+      window.location.href = response.data.url
+    } else {
+      throw new Error(response.message || 'Failed to get Microsoft OAuth URL')
+    }
+  } catch (err: any) {
+    console.error('Microsoft OAuth error:', err)
+    notificationStore.error('OAuth Error', err.data?.message || err.message || 'Failed to initialize Microsoft sign in')
+    loading.value = false
+  }
 }
 
 // Redirect if already authenticated
 watch(isAuthenticated, (authenticated) => {
   if (authenticated) {
-    navigateTo('/')
+    navigateTo('/dashboard')
   }
 }, { immediate: true })
 
@@ -262,6 +301,7 @@ useHead({
     radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
     radial-gradient(circle at 40% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
   animation: float 20s ease-in-out infinite;
+  pointer-events: none;
 }
 
 @keyframes float {

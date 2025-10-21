@@ -156,23 +156,29 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useNotificationStore } from '~/stores/notification'
+import { useAuthStore } from '~/stores/auth'
+
+definePageMeta({
+  middleware: 'auth'
+})
 
 const notificationStore = useNotificationStore()
+const authStore = useAuthStore()
 const loading = ref(false)
 const activeTab = ref('profile')
 
-// Profile settings
+// Profile settings - populated from auth store
 const profile = ref({
-  name: 'John Doe',
-  email: 'john@example.com',
+  name: '',
+  email: '',
   bio: ''
 })
 
 // Account settings
 const account = ref({
-  company: 'Acme Inc',
+  company: '',
   timezone: 'UTC',
   twoFactor: false
 })
@@ -191,14 +197,22 @@ const notifications = ref({
   reports: true
 })
 
-// API settings
-const apiKey = ref('sk_test_123456789')
+// API settings - will be fetched from backend
+const apiKey = ref('')
+
+onMounted(() => {
+  // Load user data from auth store
+  if (authStore.user) {
+    profile.value.name = authStore.user.name || ''
+    profile.value.email = authStore.user.email || ''
+  }
+})
 
 const saveProfile = async () => {
   try {
     loading.value = true
-    // TODO: Implement actual profile save
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    const { put } = useApi()
+    await put('/user/profile', profile.value)
     notificationStore.success('Profile saved successfully')
   } catch (error) {
     notificationStore.error('Failed to save profile')
@@ -210,8 +224,8 @@ const saveProfile = async () => {
 const saveAccount = async () => {
   try {
     loading.value = true
-    // TODO: Implement actual account save
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    const { put } = useApi()
+    await put('/user/account', account.value)
     notificationStore.success('Account settings saved successfully')
   } catch (error) {
     notificationStore.error('Failed to save account settings')
@@ -223,8 +237,8 @@ const saveAccount = async () => {
 const saveNotifications = async () => {
   try {
     loading.value = true
-    // TODO: Implement actual notifications save
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    const { put } = useApi()
+    await put('/user/notifications', notifications.value)
     notificationStore.success('Notification settings saved successfully')
   } catch (error) {
     notificationStore.error('Failed to save notification settings')
@@ -241,9 +255,11 @@ const copyApiKey = () => {
 const regenerateApiKey = async () => {
   try {
     loading.value = true
-    // TODO: Implement actual API key regeneration
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    apiKey.value = 'sk_test_' + Math.random().toString(36).substring(7)
+    const { post } = useApi()
+    const response = await post('/user/regenerate-api-key')
+    if (response.data?.apiKey) {
+      apiKey.value = response.data.apiKey
+    }
     notificationStore.success('API key regenerated successfully')
   } catch (error) {
     notificationStore.error('Failed to regenerate API key')

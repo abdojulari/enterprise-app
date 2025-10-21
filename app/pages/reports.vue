@@ -65,17 +65,30 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
+import { useStatsStore } from '~/stores/stats'
 
+definePageMeta({
+  middleware: 'auth'
+})
+
+const statsStore = useStatsStore()
 const loading = ref(true)
 const activeTab = ref('overview')
 
-const metrics = ref([
-  { label: 'Total Subscribers', value: '12,345' },
-  { label: 'Average Open Rate', value: '24.5%' },
-  { label: 'Average Click Rate', value: '3.2%' },
-  { label: 'Growth Rate', value: '+5.4%' }
-])
+// Compute metrics from real API data
+const metrics = computed(() => {
+  const overview = statsStore.overview || {}
+  const leads = overview.leads || {}
+  const engagement = overview.engagement || {}
+  
+  return [
+    { label: 'Total Subscribers', value: leads.total || 0 },
+    { label: 'Average Open Rate', value: engagement.open_rate ? `${(engagement.open_rate * 100).toFixed(1)}%` : '0%' },
+    { label: 'Average Click Rate', value: engagement.click_rate ? `${(engagement.click_rate * 100).toFixed(1)}%` : '0%' },
+    { label: 'Growth Rate', value: 'N/A' }
+  ]
+})
 
 const campaignHeaders = [
   { title: 'Campaign', key: 'name' },
@@ -92,53 +105,66 @@ const subscriberHeaders = [
   { title: 'Growth', key: 'growth' }
 ]
 
-const campaigns = ref([
-  { name: 'Welcome Series', sent: '1,234', opens: '45%', clicks: '12%', revenue: '$1,234' },
-  { name: 'Monthly Newsletter', sent: '5,678', opens: '32%', clicks: '8%', revenue: '$2,345' }
-])
+// Compute campaigns from real API data
+const campaigns = computed(() => {
+  if (!statsStore.byCampaign || statsStore.byCampaign.length === 0) return []
+  
+  return statsStore.byCampaign.map((campaign: any) => ({
+    name: campaign.name || campaign.campaign_name || 'Untitled',
+    sent: campaign.total_sent || 0,
+    opens: campaign.total_opens ? `${((campaign.total_opens / campaign.total_sent) * 100).toFixed(1)}%` : '0%',
+    clicks: campaign.total_clicks ? `${((campaign.total_clicks / campaign.total_sent) * 100).toFixed(1)}%` : '0%',
+    revenue: 'N/A'
+  }))
+})
 
-const subscribers = ref([
-  { name: 'Main List', total: '10,234', active: '8,123', growth: '+2.3%' },
-  { name: 'Newsletter', total: '5,678', active: '4,567', growth: '+1.5%' }
-])
+const subscribers = ref([])
 
-const overviewChartOption = ref({
-  tooltip: {
-    trigger: 'axis'
-  },
-  legend: {
-    data: ['Subscribers', 'Opens', 'Clicks']
-  },
-  xAxis: {
-    type: 'category',
-    data: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
-  },
-  yAxis: {
-    type: 'value'
-  },
-  series: [
-    {
-      name: 'Subscribers',
-      type: 'line',
-      data: [1000, 1200, 1400, 1800, 2200, 2600]
-    },
-    {
-      name: 'Opens',
-      type: 'line',
-      data: [500, 600, 700, 900, 1100, 1300]
-    },
-    {
-      name: 'Clicks',
-      type: 'line',
-      data: [100, 120, 140, 180, 220, 260]
+// Compute chart from real API data
+const overviewChartOption = computed(() => {
+  if (!statsStore.weekly || statsStore.weekly.length === 0) {
+    return {
+      xAxis: { type: 'category', data: [] },
+      yAxis: { type: 'value' },
+      series: []
     }
-  ]
+  }
+
+  return {
+    tooltip: { trigger: 'axis' },
+    legend: { data: ['Subscribers', 'Opens', 'Clicks'] },
+    xAxis: {
+      type: 'category',
+      data: statsStore.weekly.map((w: any) => w.week || w.date || '')
+    },
+    yAxis: { type: 'value' },
+    series: [
+      {
+        name: 'Subscribers',
+        type: 'line',
+        data: statsStore.weekly.map((w: any) => w.subscribers || 0)
+      },
+      {
+        name: 'Opens',
+        type: 'line',
+        data: statsStore.weekly.map((w: any) => w.opens || 0)
+      },
+      {
+        name: 'Clicks',
+        type: 'line',
+        data: statsStore.weekly.map((w: any) => w.clicks || 0)
+      }
+    ]
+  }
 })
 
 onMounted(async () => {
   try {
-    // TODO: Fetch actual report data from API
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    await Promise.all([
+      statsStore.fetchOverview(),
+      statsStore.fetchWeekly(),
+      statsStore.fetchCampaignsStats()
+    ])
   } catch (error) {
     console.error('Failed to load reports:', error)
   } finally {

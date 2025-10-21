@@ -3,7 +3,7 @@
     <!-- Stats Overview -->
     <v-row>
       <v-col v-for="(stat, index) in dashboardStore.stats" :key="index" cols="12" sm="6" md="3">
-        <v-card>
+        <v-card class="mb-6 elevation-6" flat >
           <v-card-text>
             <div class="d-flex align-center justify-space-between">
               <div>
@@ -24,7 +24,7 @@
     <!-- Recent Activity -->
     <v-row class="mt-6">
       <v-col cols="12" md="8">
-        <v-card>
+        <v-card class="mb-6 elevation-6" flat >
           <v-card-title>Campaign Performance</v-card-title>
           <v-card-text>
             <v-chart class="chart" :option="dashboardStore.chartOption" autoresize />
@@ -33,7 +33,7 @@
       </v-col>
 
       <v-col cols="12" md="4">
-        <v-card>
+        <v-card class="mb-6 elevation-6" flat >
           <v-card-title>Recent Activity</v-card-title>
           <v-list lines="two">
             <v-list-item v-for="(activity, index) in dashboardStore.recentActivity" :key="index" :subtitle="activity.timestamp">
@@ -55,7 +55,16 @@
 <script setup lang="ts">
 import { useDashboardStore } from '~/stores/dashboard'
 
+definePageMeta({
+  middleware: 'auth'
+})
+
 const dashboardStore = useDashboardStore()
+
+// Fetch real data from API on mount
+onMounted(async () => {
+  await (dashboardStore as any).fetchDashboardData()
+})
 </script>
 
 <style scoped>

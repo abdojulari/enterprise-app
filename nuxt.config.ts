@@ -14,7 +14,7 @@ export default defineNuxtConfig({
     server: {
       proxy: {
         '/api': {
-          target: process.env.API_BASE_URL || 'http://localhost:8090',
+          target: process.env.API_BASE_URL || 'http://localhost:8000',
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api/, '/api')
         }
@@ -23,7 +23,8 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      apiBase: '' // Empty string since we're using proxy
+      apiBase: '', // Empty string since we're using proxy
+      emailAutomationAPI: process.env.EMAIL_AUTOMATION_API || 'http://localhost:8000'
     }
   }
 })

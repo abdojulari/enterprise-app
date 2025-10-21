@@ -112,77 +112,24 @@ export const useUserStore = defineStore('user', {
       this.loading = true
       
       try {
-        // Mock data - replace with actual API call
-        await new Promise(resolve => setTimeout(resolve, 600))
+        const { get } = useApi()
+        const response = await get('/users', {
+          page: this.pagination.page,
+          limit: this.pagination.limit,
+          search: this.search,
+          role: this.filters.role,
+          status: this.filters.status
+        })
         
-        const mockUsers: User[] = [
-          {
-            id: '1',
-            name: 'John Doe',
-            email: 'john.doe@enterprise.com',
-            role: UserRole.ADMIN,
-            status: UserStatus.ACTIVE,
-            avatar: '',
-            createdAt: '2024-01-01T00:00:00Z',
-            updatedAt: '2024-01-15T00:00:00Z'
-          },
-          {
-            id: '2',
-            name: 'Jane Smith',
-            email: 'jane.smith@enterprise.com',
-            role: UserRole.MANAGER,
-            status: UserStatus.ACTIVE,
-            createdAt: '2024-01-02T00:00:00Z',
-            updatedAt: '2024-01-14T00:00:00Z'
-          },
-          {
-            id: '3',
-            name: 'Bob Wilson',
-            email: 'bob.wilson@enterprise.com',
-            role: UserRole.USER,
-            status: UserStatus.PENDING,
-            createdAt: '2024-01-03T00:00:00Z',
-            updatedAt: '2024-01-13T00:00:00Z'
-          },
-          {
-            id: '4',
-            name: 'Alice Johnson',
-            email: 'alice.johnson@enterprise.com',
-            role: UserRole.MODERATOR,
-            status: UserStatus.ACTIVE,
-            createdAt: '2024-01-04T00:00:00Z',
-            updatedAt: '2024-01-12T00:00:00Z'
-          },
-          {
-            id: '5',
-            name: 'Charlie Brown',
-            email: 'charlie.brown@enterprise.com',
-            role: UserRole.USER,
-            status: UserStatus.SUSPENDED,
-            createdAt: '2024-01-05T00:00:00Z',
-            updatedAt: '2024-01-11T00:00:00Z'
-          }
-        ]
-        
-        this.users = mockUsers
-        this.pagination.total = mockUsers.length
-        
-        // TODO: Replace with actual API call
-        // const { get } = useApi()
-        // const response = await get('/users', {
-        //   page: this.pagination.page,
-        //   limit: this.pagination.limit,
-        //   search: this.search,
-        //   role: this.filters.role,
-        //   status: this.filters.status
-        // })
-        // this.users = response.data.users
-        // this.pagination.total = response.data.total
+        this.users = response.data?.users || []
+        this.pagination.total = response.data?.total || 0
         
       } catch (error) {
         console.error('Error loading users:', error)
         const notificationStore = useNotificationStore()
         notificationStore.handleApiError(error, 'Loading Users')
+        this.users = []
+        this.pagination.total = 0
       } finally {
         this.loading = false
       }
@@ -194,23 +141,18 @@ export const useUserStore = defineStore('user', {
         const uiStore = useUIStore()
         uiStore.showLoading('Creating user...')
         
-        // Mock API call
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        const { post } = useApi()
+        const response = await post('/users', userData)
         
-        const newUser: User = {
-          ...userData,
-          id: Date.now().toString(),
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+        if (response.data) {
+          this.users.unshift(response.data)
+          this.pagination.total++
+          
+          const notificationStore = useNotificationStore()
+          notificationStore.success('User Created', `${response.data.name} has been added to the system`)
+          
+          return response.data
         }
-        
-        this.users.unshift(newUser)
-        this.pagination.total++
-        
-        const notificationStore = useNotificationStore()
-        notificationStore.success('User Created', `${newUser.name} has been added to the system`)
-        
-        return newUser
         
       } catch (error) {
         console.error('Error creating user:', error)
@@ -229,24 +171,20 @@ export const useUserStore = defineStore('user', {
         const uiStore = useUIStore()
         uiStore.showLoading('Updating user...')
         
-        // Mock API call
-        await new Promise(resolve => setTimeout(resolve, 800))
+        const { put } = useApi()
+        const response = await put(`/users/${userId}`, updates)
         
-        const userIndex = this.users.findIndex(u => u.id === userId)
-        if (userIndex === -1) {
-          throw new Error('User not found')
+        if (response.data) {
+          const userIndex = this.users.findIndex(u => u.id === userId)
+          if (userIndex !== -1) {
+            this.users[userIndex] = response.data
+          }
+          
+          const notificationStore = useNotificationStore()
+          notificationStore.success('User Updated', 'User information has been saved')
+          
+          return response.data
         }
-        
-        this.users[userIndex] = {
-          ...this.users[userIndex],
-          ...updates,
-          updatedAt: new Date().toISOString()
-        }
-        
-        const notificationStore = useNotificationStore()
-        notificationStore.success('User Updated', 'User information has been saved')
-        
-        return this.users[userIndex]
         
       } catch (error) {
         console.error('Error updating user:', error)
@@ -270,8 +208,8 @@ export const useUserStore = defineStore('user', {
         const uiStore = useUIStore()
         uiStore.showLoading('Deleting user...')
         
-        // Mock API call
-        await new Promise(resolve => setTimeout(resolve, 600))
+        const { del } = useApi()
+        await del(`/users/${userId}`)
         
         this.users = this.users.filter(u => u.id !== userId)
         this.selectedUsers = this.selectedUsers.filter(id => id !== userId)
@@ -297,8 +235,8 @@ export const useUserStore = defineStore('user', {
         const uiStore = useUIStore()
         uiStore.showLoading(`Deleting ${userIds.length} users...`)
         
-        // Mock API call
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        const { post } = useApi()
+        await post('/users/bulk-delete', { userIds })
         
         this.users = this.users.filter(u => !userIds.includes(u.id))
         this.selectedUsers = []
@@ -323,8 +261,8 @@ export const useUserStore = defineStore('user', {
         const uiStore = useUIStore()
         uiStore.showLoading(`Updating ${userIds.length} users...`)
         
-        // Mock API call
-        await new Promise(resolve => setTimeout(resolve, 800))
+        const { post } = useApi()
+        await post('/users/bulk-update-status', { userIds, status })
         
         this.users.forEach(user => {
           if (userIds.includes(user.id)) {

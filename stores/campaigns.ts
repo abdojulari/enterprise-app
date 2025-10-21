@@ -34,7 +34,7 @@ export const useCampaignsStore = defineStore('campaigns', {
       this.error = null
       try {
         const config = useRuntimeConfig()
-        const base = config.public.apiBase || 'http://localhost:8090'
+        const base = config.public.emailAutomationAPI || 'http://localhost:8000'
         const data = await $fetch<Campaign[]>(`${base}/api/campaigns/`)
         this.campaigns = data || []
       } catch (err: any) {
@@ -48,7 +48,7 @@ export const useCampaignsStore = defineStore('campaigns', {
     async fetchCampaignStats(campaignId: number) {
       try {
         const config = useRuntimeConfig()
-        const base = config.public.apiBase || 'http://localhost:8090'
+        const base = config.public.emailAutomationAPI || 'http://localhost:8000'
         const stats = await $fetch<CampaignStats>(`${base}/api/campaigns/${campaignId}/stats`)
         this.statsById[campaignId] = stats || {}
         return stats
@@ -62,7 +62,7 @@ export const useCampaignsStore = defineStore('campaigns', {
       this.error = null
       try {
         const config = useRuntimeConfig()
-        const base = config.public.apiBase || 'http://localhost:8090'
+        const base = config.public.emailAutomationAPI || 'http://localhost:8000'
         await $fetch(`${base}/api/campaigns/${campaignId}/send`, { method: 'POST' })
         await this.fetchCampaigns()
       } catch (err: any) {

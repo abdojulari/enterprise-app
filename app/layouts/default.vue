@@ -127,16 +127,17 @@
         </template>
       </v-toolbar-title>
 
-      <v-toolbar-items v-if="!uiStore.isMobile" class="top-nav ml-4">
+      <!-- <v-toolbar-items v-if="!uiStore.isMobile" class="top-nav ml-4">
         <v-btn to="/" variant="text" class="nav-link text-h6" exact>Dashboard</v-btn>
         <v-btn to="/analytics" variant="text" class="nav-link text-h6">Analytics</v-btn>
         <v-btn to="/campaigns" variant="text" class="nav-link text-h6">Campaigns</v-btn>
         <v-btn to="/leads" variant="text" class="nav-link text-h6">Leads</v-btn>
-        <v-btn to="/stats" variant="text" class="nav-link text-h6">Stats</v-btn>
+        <v-btn to="/scraping" variant="text" class="nav-link text-h6">Scraping</v-btn>
         <v-btn to="/enrichment" variant="text" class="nav-link text-h6">Enrichment</v-btn>
+        <v-btn to="/stats" variant="text" class="nav-link text-h6">Stats</v-btn>
         <v-btn to="/reports" variant="text" class="nav-link text-h6">Reports</v-btn>
         <v-btn to="/settings" variant="text" class="nav-link text-h6">Settings</v-btn>
-      </v-toolbar-items>
+      </v-toolbar-items> -->
       
       <!-- Search -->
       <v-text-field
@@ -244,6 +245,9 @@
         <slot />
       </v-container>
     </v-main>
+    
+    <!-- Notification System -->
+    <UiNotificationSystem />
     
     <!-- Footer -->
     <v-footer class="enterprise-footer bg-surface pa-5">

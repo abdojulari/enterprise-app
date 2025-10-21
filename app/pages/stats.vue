@@ -4,7 +4,7 @@
     
     <v-row>
       <v-col cols="12" md="6">
-        <v-card>
+        <v-card class="mb-6 pa-5" variant="outlined">
           <v-card-title>Weekly Stats</v-card-title>
           <v-card-text>
             <v-data-table
@@ -17,7 +17,7 @@
       </v-col>
       
       <v-col cols="12" md="6">
-        <v-card>
+        <v-card class="mb-6 pa-5" variant="outlined">
           <v-card-title>Campaign Stats</v-card-title>
           <v-card-text>
             <v-data-table
@@ -33,8 +33,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
+import { useStatsStore } from '~/stores/stats'
 
+definePageMeta({
+  middleware: 'auth'
+})
+
+const statsStore = useStatsStore()
 const loading = ref(true)
 
 const weeklyHeaders = [
@@ -50,23 +56,37 @@ const campaignHeaders = [
   { title: 'Clicks', key: 'clicks' }
 ]
 
-const weeklyStats = ref([
-  { metric: 'Total Sends', value: '12,345', change: '+5%' },
-  { metric: 'Open Rate', value: '25.4%', change: '-2%' },
-  { metric: 'Click Rate', value: '3.2%', change: '+1%' },
-  { metric: 'Bounces', value: '0.5%', change: '0%' }
-])
+// Transform weekly stats from API into table format
+const weeklyStats = computed(() => {
+  if (!statsStore.weekly || statsStore.weekly.length === 0) return []
+  
+  const latest = statsStore.weekly[0] || {}
+  return [
+    { metric: 'Total Sends', value: latest.sent || 0, change: 'N/A' },
+    { metric: 'Open Rate', value: latest.opens ? `${((latest.opens / latest.sent) * 100).toFixed(1)}%` : '0%', change: 'N/A' },
+    { metric: 'Click Rate', value: latest.clicks ? `${((latest.clicks / latest.sent) * 100).toFixed(1)}%` : '0%', change: 'N/A' },
+    { metric: 'Bounces', value: '0%', change: 'N/A' }
+  ]
+})
 
-const campaignStats = ref([
-  { name: 'Welcome Series', sent: '1,234', opens: '45%', clicks: '12%' },
-  { name: 'Monthly Newsletter', sent: '5,678', opens: '32%', clicks: '8%' },
-  { name: 'Product Update', sent: '3,456', opens: '28%', clicks: '5%' }
-])
+// Transform campaign stats from API into table format
+const campaignStats = computed(() => {
+  if (!statsStore.byCampaign || statsStore.byCampaign.length === 0) return []
+  
+  return statsStore.byCampaign.map((campaign: any) => ({
+    name: campaign.name || campaign.campaign_name || 'Untitled',
+    sent: campaign.total_sent || 0,
+    opens: campaign.total_opens ? `${((campaign.total_opens / campaign.total_sent) * 100).toFixed(1)}%` : '0%',
+    clicks: campaign.total_clicks ? `${((campaign.total_clicks / campaign.total_sent) * 100).toFixed(1)}%` : '0%'
+  }))
+})
 
 onMounted(async () => {
   try {
-    // TODO: Fetch actual stats from API
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    await Promise.all([
+      statsStore.fetchWeekly(),
+      statsStore.fetchCampaignsStats()
+    ])
   } catch (error) {
     console.error('Failed to load stats:', error)
   } finally {

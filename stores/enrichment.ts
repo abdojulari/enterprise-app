@@ -14,7 +14,7 @@ export const useEnrichmentStore = defineStore('enrichment', {
     async fetchStatus() {
       try {
         const config = useRuntimeConfig()
-        const base = config.public.apiBase || 'http://localhost:8090'
+        const base = config.public.emailAutomationAPI || 'http://localhost:8000'
         this.status = await $fetch<EnrichmentStatus>(`${base}/api/enrichment/status`)
       } catch (err: any) {
         this.error = err?.message || 'Failed to fetch enrichment status'
@@ -24,21 +24,21 @@ export const useEnrichmentStore = defineStore('enrichment', {
 
     async domainSearch(domain: string) {
       const config = useRuntimeConfig()
-      const base = config.public.apiBase || 'http://localhost:8090'
+      const base = config.public.emailAutomationAPI || 'http://localhost:8000'
       this.lastResult = await $fetch(`${base}/api/enrichment/domain-search`, { method: 'POST', body: { domain } })
       return this.lastResult
     },
 
     async verifyEmail(email: string) {
       const config = useRuntimeConfig()
-      const base = config.public.apiBase || 'http://localhost:8090'
+      const base = config.public.emailAutomationAPI || 'http://localhost:8000'
       this.lastResult = await $fetch(`${base}/api/enrichment/verify-email`, { method: 'POST', body: { email } })
       return this.lastResult
     },
 
     async findEmail(name: string, domain: string) {
       const config = useRuntimeConfig()
-      const base = config.public.apiBase || 'http://localhost:8090'
+      const base = config.public.emailAutomationAPI || 'http://localhost:8000'
       this.lastResult = await $fetch(`${base}/api/enrichment/find-email`, { method: 'POST', body: { name, domain } })
       return this.lastResult
     }

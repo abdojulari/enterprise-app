@@ -34,8 +34,10 @@
   </Teleport>
 </template>
 
-<script setup>
-// Use Pinia store instead of composable
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useNotificationStore } from '~/stores/notification'
+
 const notificationStore = useNotificationStore()
 
 const notifications = computed(() => notificationStore.activeNotifications)

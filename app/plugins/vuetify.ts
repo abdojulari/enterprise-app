@@ -7,9 +7,10 @@ export default defineNuxtPlugin(nuxtApp => {
     components,
     directives,
     theme: {
-      defaultTheme: 'light',
+      defaultTheme: 'enterpriseTheme',
       themes: {
-        light: {
+        enterpriseTheme: {
+          dark: false,
           colors: {
             primary: '#2196F3',
             secondary: '#424242',
@@ -18,6 +19,22 @@ export default defineNuxtPlugin(nuxtApp => {
             info: '#2196F3',
             success: '#4CAF50',
             warning: '#FFC107',
+            background: '#FFFFFF',
+            surface: '#F5F5F5',
+          },
+        },
+        darkTheme: {
+          dark: true,
+          colors: {
+            primary: '#2196F3',
+            secondary: '#9E9E9E',
+            accent: '#82B1FF',
+            error: '#FF5252',
+            info: '#2196F3',
+            success: '#4CAF50',
+            warning: '#FFC107',
+            background: '#121212',
+            surface: '#1E1E1E',
           },
         },
       },
@@ -25,4 +42,22 @@ export default defineNuxtPlugin(nuxtApp => {
   })
 
   nuxtApp.vueApp.use(vuetify)
+  
+  // Make Vuetify theme available globally for the theme store
+  if (process.client) {
+    window.vuetifyTheme = vuetify.theme
+    
+    // Initialize theme after Pinia is ready
+    nuxtApp.hook('app:mounted', async () => {
+      try {
+        const { useThemeStore } = await import('~/stores/theme')
+        const themeStore = useThemeStore()
+        if (themeStore && typeof themeStore.initializeTheme === 'function') {
+          themeStore.initializeTheme()
+        }
+      } catch (error) {
+        console.error('Failed to initialize theme store:', error)
+      }
+    })
+  }
 })

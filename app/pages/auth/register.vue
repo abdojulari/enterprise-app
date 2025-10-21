@@ -143,7 +143,7 @@
                     Google
                   </VBtn>
                   
-                  <VBtn
+                  <!-- <VBtn
                     variant="outlined"
                     size="large"
                     class="flex-grow-1"
@@ -151,7 +151,7 @@
                     @click="registerWithMicrosoft"
                   >
                     Microsoft
-                  </VBtn>
+                  </VBtn> -->
                 </div>
               </VForm>
             </VCardText>
@@ -185,6 +185,9 @@ definePageMeta({
 // Pinia stores
 const authStore = useAuthStore()
 const notificationStore = useNotificationStore()
+
+// API composable
+const { get } = useApi()
 
 // Computed from stores
 const isAuthenticated = computed(() => authStore.isAuthenticated)
@@ -274,7 +277,7 @@ const handleRegister = async () => {
     notificationStore.success('Account Created!', 'Welcome to our enterprise platform.')
     
     // Redirect to dashboard
-    await navigateTo('/')
+    await navigateTo('/dashboard')
   } catch (err: any) {
     console.error('Registration error:', err)
     
@@ -289,18 +292,54 @@ const handleRegister = async () => {
   }
 }
 
-const registerWithGoogle = () => {
-  notificationStore.error('Not Implemented', 'Google OAuth registration pending API implementation')
+const registerWithGoogle = async () => {
+  try {
+    loading.value = true
+    
+    // Get Google OAuth URL from backend
+    const response = await get<{ url: string }>('/api/auth/google/url', {
+      state: 'register'
+    })
+    
+    if (response.success && response.data?.url) {
+      // Redirect to Google OAuth
+      window.location.href = response.data.url
+    } else {
+      throw new Error(response.message || 'Failed to get Google OAuth URL')
+    }
+  } catch (err: any) {
+    console.error('Google OAuth error:', err)
+    notificationStore.error('OAuth Error', err.data?.message || err.message || 'Failed to initialize Google sign in')
+    loading.value = false
+  }
 }
 
-const registerWithMicrosoft = () => {
-  notificationStore.error('Not Implemented', 'Microsoft OAuth registration pending API implementation')
+const registerWithMicrosoft = async () => {
+  try {
+    loading.value = true
+    
+    // Get Microsoft OAuth URL from backend
+    const response = await get<{ url: string }>('/api/auth/microsoft/url', {
+      state: 'register'
+    })
+    
+    if (response.success && response.data?.url) {
+      // Redirect to Microsoft OAuth
+      window.location.href = response.data.url
+    } else {
+      throw new Error(response.message || 'Failed to get Microsoft OAuth URL')
+    }
+  } catch (err: any) {
+    console.error('Microsoft OAuth error:', err)
+    notificationStore.error('OAuth Error', err.data?.message || err.message || 'Failed to initialize Microsoft sign in')
+    loading.value = false
+  }
 }
 
 // Redirect if already authenticated
 watch(isAuthenticated, (authenticated) => {
   if (authenticated) {
-    navigateTo('/')
+    navigateTo('/dashboard')
   }
 }, { immediate: true })
 
@@ -332,6 +371,7 @@ useHead({
     radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
     radial-gradient(circle at 40% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
   animation: float 20s ease-in-out infinite;
+  pointer-events: none;
 }
 
 @keyframes float {

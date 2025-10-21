@@ -1,8 +1,10 @@
 import type { ApiResponse } from '~/types'
+import { useAuthStore } from '~/stores/auth'
 
 export const useApi = () => {
   const config = useRuntimeConfig()
   const baseURL = config.public.API_BASE_URL || config.public.apiBase
+  const authStore = useAuthStore()
 
   // Generic API request function
   const apiRequest = async <T>(
@@ -10,15 +12,23 @@ export const useApi = () => {
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> => {
     try {
-      const { data } = await $fetch<ApiResponse<T>>(`${baseURL}${endpoint}`, {
+      // Build headers with authentication token
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        ...options.headers as Record<string, string>,
+      }
+
+      // Add Authorization header if user is authenticated
+      if (authStore.token) {
+        headers['Authorization'] = `Bearer ${authStore.token}`
+      }
+
+      const response = await $fetch<ApiResponse<T>>(`${baseURL}${endpoint}`, {
         ...options,
-        headers: {
-          'Content-Type': 'application/json',
-          ...options.headers,
-        },
+        headers,
       })
 
-      return data
+      return response
     } catch (error: any) {
       console.error('API Error:', error)
       
@@ -83,3 +93,4 @@ export const useApi = () => {
     delete: remove,
   }
 }
+

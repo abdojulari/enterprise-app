@@ -17,11 +17,13 @@
     "@mdi/font": "^7.4.47",
     "@nuxt/eslint": "^0.7.4",
     "@pinia/nuxt": "^0.11.2",
+    "echarts": "^6.0.0",
     "nuxt": "^3.13.2",
     "pinia": "^3.0.3",
     "sass": "^1.79.4",
     "vite-plugin-vuetify": "^2.1.2",
     "vue": "latest",
+    "vue-echarts": "^8.0.1",
     "vuetify": "^3.9.5"
   },
   "devDependencies": {

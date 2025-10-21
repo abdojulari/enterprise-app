@@ -259,6 +259,7 @@ import type { User, UserRole, UserStatus } from '~/types'
 
 // Page meta
 definePageMeta({
+  middleware: 'auth',
   title: 'Users',
   breadcrumbs: [
     { text: 'Home', to: '/', disabled: false },

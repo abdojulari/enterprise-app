@@ -1,28 +1,64 @@
 <template>
-  <v-container fluid class="pa-0 bg-surface">
-    <!-- Hero Section -->
-    <v-container class="py-16">
-      <v-row align="center" class="flex-column-reverse flex-md-row">
-        <!-- Left Column -->
-        <v-col cols="12" md="5" class="text-center text-md-left">
-          <h1 class="text-h2 font-weight-bold mb-6">
-            Conquer
-            <div class="text-primary">email marketing</div>
-            your way
-          </h1>
+  <v-app>
+    <v-container fluid class="pa-0 bg-surface h-100">
+      <!-- Hero Section -->
+      <v-container class="py-16">
+        <v-row align="center" class="flex-column-reverse flex-md-row">
+          <!-- Left Column -->
+          <v-col cols="12" md="5" class="text-center text-md-left">
+            <h1 class="text-h2 font-weight-bold mb-6">
+              Conquer
+              <div class="text-primary">email marketing</div>
+              your way
+            </h1>
           <v-card-text class="text-subtitle-1 text-medium-emphasis px-0 mb-6">
             Become an email marketing expert with advanced tools made easy for you. Includes live 24/7 support and the latest features like landing pages & automation.
           </v-card-text>
-          <v-btn
-            color="primary"
-            size="x-large"
-            variant="flat"
-            rounded="lg"
-            class="px-8 text-capitalize"
-          >
-            Sign up free
-          </v-btn>
-        </v-col>
+          
+          <!-- Show different buttons based on authentication status -->
+          <template v-if="authStore.isAuthenticated">
+            <v-btn
+              color="primary"
+              size="x-large"
+              variant="flat"
+              rounded="lg"
+              class="px-8 text-capitalize"
+              to="/dashboard"
+            >
+              Go to Dashboard
+            </v-btn>
+            <v-btn
+              variant="outlined"
+              size="x-large"
+              rounded="lg"
+              class="px-8 text-capitalize ml-4"
+              @click="handleLogout"
+            >
+              Logout
+            </v-btn>
+          </template>
+          <template v-else>
+            <v-btn
+              color="primary"
+              size="x-large"
+              variant="flat"
+              rounded="lg"
+              class="px-8 text-capitalize"
+              to="/auth/register"
+            >
+              Sign up free
+            </v-btn>
+            <v-btn
+              variant="outlined"
+              size="x-large"
+              rounded="lg"
+              class="px-8 text-capitalize ml-4"
+              to="/auth/login"
+            >
+              Login
+            </v-btn>
+          </template>
+          </v-col>
 
         <!-- Right Column -->
         <v-col cols="12" md="7" class="position-relative">
@@ -37,15 +73,15 @@
 
           <!-- Feature Cards Stack -->
           <v-sheet class="position-relative" height="600">
-            <!-- Main Image -->
-            <v-img
+            <!-- Main Image (commented out - add your image to /public/images/ folder) -->
+            <!-- <v-img
               src="/images/hero-person.webp"
               class="d-none d-md-block"
               width="400"
               height="400"
               style="position: absolute; right: 100px; top: 50%; transform: translateY(-50%); z-index: 1;"
               cover
-            ></v-img>
+            ></v-img> -->
 
             <!-- Feature Cards -->
             <v-slide-y-transition group>
@@ -90,10 +126,43 @@
         </v-col>
       </v-row>
     </v-container>
-  </v-container>
+    </v-container>
+  </v-app>
 </template>
 
 <script setup lang="ts">
+import { useAuthStore } from '~/stores/auth'
+
+// Disable default layout for landing page
+definePageMeta({
+  layout: false
+})
+
+const authStore = useAuthStore()
+
+const handleLogout = async () => {
+  try {
+    // Clear localStorage first
+    if (process.client) {
+      localStorage.removeItem('auth_token')
+      localStorage.removeItem('auth_user')
+    }
+    
+    // Reset auth store
+    authStore.$reset()
+    authStore.isAuthenticated = false
+    authStore.user = null
+    authStore.token = null
+    
+    // Reload page to show login buttons
+    window.location.reload()
+  } catch (error) {
+    console.error('Logout error:', error)
+    // Force reload even if there's an error
+    window.location.reload()
+  }
+}
+
 const features = [
   {
     icon: 'mdi-web',

@@ -18,7 +18,7 @@ export const useLeadsStore = defineStore('leads', {
     async fetchCounts() {
       try {
         const config = useRuntimeConfig()
-        const base = config.public.apiBase || 'http://localhost:8090'
+        const base = config.public.emailAutomationAPI || 'http://localhost:8000'
         this.counts = await $fetch<LeadCounts>(`${base}/api/upload/leads/count`)
       } catch (err: any) {
         this.error = err?.message || 'Failed to fetch lead counts'
@@ -31,7 +31,7 @@ export const useLeadsStore = defineStore('leads', {
       this.error = null
       try {
         const config = useRuntimeConfig()
-        const base = config.public.apiBase || 'http://localhost:8090'
+        const base = config.public.emailAutomationAPI || 'http://localhost:8000'
         const form = new FormData()
         form.append('file', file)
         const result = await $fetch(`${base}/api/upload/csv`, {
