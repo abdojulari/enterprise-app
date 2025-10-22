@@ -110,4 +110,9 @@ export default defineNuxtPlugin((app) => {
   })
 
   app.vueApp.use(vuetify)
+
+  // Expose Vuetify theme to window for theme store access
+  if (process.client) {
+    window.vuetifyTheme = vuetify.theme
+  }
 })

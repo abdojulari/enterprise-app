@@ -75,7 +75,10 @@ onMounted(async () => {
     }
     
     // Exchange code for token
-    const response = await post<{ user: any; token: any }>(`/api/auth/google/callback?code=${encodeURIComponent(code)}`)
+    const response = await post<{ user: any; token: any }>('/api/auth/google/callback', {
+      code,
+      state: route.query.state || 'login'
+    })
     
     if (response.success && response.data) {
       // Update auth store

@@ -1,5 +1,22 @@
 <template>
-  <v-app>
+  <v-app :theme="currentTheme">
+    <!-- App Bar for Landing Page -->
+    <v-app-bar elevation="1" color="surface">
+      <v-toolbar-title class="px-4 text-h5 font-weight-bold">
+        Enterprise App
+      </v-toolbar-title>
+      
+      <v-spacer />
+      
+      <!-- Theme toggle -->
+      <v-btn
+        :icon="themeStore.themeIcon"
+        variant="text"
+        @click="themeStore.toggleTheme"
+        class="mr-2"
+      />
+    </v-app-bar>
+    
     <v-container fluid class="pa-0 bg-surface h-100">
       <!-- Hero Section -->
       <v-container class="py-16">
@@ -131,7 +148,9 @@
 </template>
 
 <script setup lang="ts">
+import { computed, onMounted } from 'vue'
 import { useAuthStore } from '~/stores/auth'
+import { useThemeStore } from '~/stores/theme'
 
 // Disable default layout for landing page
 definePageMeta({
@@ -139,6 +158,15 @@ definePageMeta({
 })
 
 const authStore = useAuthStore()
+const themeStore = useThemeStore()
+
+const currentTheme = computed(() => themeStore.currentTheme)
+const themeIcon = computed(() => themeStore.themeIcon)
+
+// Initialize theme on mount
+onMounted(() => {
+  themeStore.initializeTheme()
+})
 
 const handleLogout = async () => {
   try {

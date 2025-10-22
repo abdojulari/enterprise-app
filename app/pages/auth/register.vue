@@ -1,5 +1,14 @@
 <template>
   <div class="auth-page">
+    <!-- Theme Toggle Button -->
+    <v-btn
+      :icon="themeStore.themeIcon"
+      variant="text"
+      @click="themeStore.toggleTheme"
+      class="theme-toggle-btn"
+      color="white"
+    />
+    
     <VContainer class="fill-height d-flex align-center justify-center">
       <VRow justify="center" align="center" class="fill-height">
         <VCol cols="12" sm="8" md="6" lg="5" xl="4">
@@ -175,6 +184,7 @@
 
 <script setup lang="ts">
 import type { RegisterData } from '~/types'
+import { useThemeStore } from '~/stores/theme'
 
 // Page meta
 definePageMeta({
@@ -185,6 +195,7 @@ definePageMeta({
 // Pinia stores
 const authStore = useAuthStore()
 const notificationStore = useNotificationStore()
+const themeStore = useThemeStore()
 
 // API composable
 const { get } = useApi()
@@ -393,5 +404,12 @@ useHead({
   .auth-page .v-card {
     margin: 0 16px;
   }
+}
+
+.theme-toggle-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
 }
 </style>

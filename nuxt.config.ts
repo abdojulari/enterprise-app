@@ -10,21 +10,32 @@ export default defineNuxtConfig({
   vite: {
     define: {
       'process.env.DEBUG': false,
-    },
-    server: {
-      proxy: {
-        '/api': {
-          target: process.env.API_BASE_URL || 'http://localhost:8000',
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api/, '/api')
-        }
-      }
     }
   },
   runtimeConfig: {
+    // Private keys (server-side only)
+    geminiApiKey: process.env.GEMINI_API_KEY,
+    cohereApiKey: process.env.COHERE_API_KEY,
+    huggingfaceApiKey: process.env.HUGGINGFACE_API_KEY,
+    facebookAppSecret: process.env.FACEBOOK_APP_SECRET,
+    
     public: {
-      apiBase: '', // Empty string since we're using proxy
-      emailAutomationAPI: process.env.EMAIL_AUTOMATION_API || 'http://localhost:8000'
+      apiBase: process.env.API_BASE_URL || 'http://localhost:8000',
+      emailAutomationAPI: process.env.EMAIL_AUTOMATION_API || 'http://localhost:8000',
+      facebookAppId: process.env.FACEBOOK_APP_ID,
+      threadsUserId: process.env.THREADS_USER_ID
+    }
+  },
+  
+  app: {
+    head: {
+      script: [
+        {
+          src: 'https://connect.facebook.net/en_US/sdk.js',
+          async: true,
+          defer: true
+        }
+      ]
     }
   }
 })

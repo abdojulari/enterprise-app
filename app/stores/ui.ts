@@ -78,6 +78,11 @@ export const useUIStore = defineStore('ui', {
         icon: 'mdi-file-chart'
       },
       {
+        title: 'Social Media',
+        to: '/social-media',
+        icon: 'mdi-share-variant'
+      },
+      {
         title: 'Settings',
         to: '/settings',
         icon: 'mdi-cog'

@@ -3,8 +3,17 @@ import { useAuthStore } from '~/stores/auth'
 
 export const useApi = () => {
   const config = useRuntimeConfig()
-  const baseURL = config.public.API_BASE_URL || config.public.apiBase
   const authStore = useAuthStore()
+
+  // Determine which backend to use based on endpoint
+  const getBaseURL = (endpoint: string) => {
+    // Auth endpoints go to Python backend
+    if (endpoint.startsWith('/api/auth') || endpoint.startsWith('/auth')) {
+      return config.public.apiBase
+    }
+    // AI and social media endpoints stay with Nuxt server (no base URL needed)
+    return ''
+  }
 
   // Generic API request function
   const apiRequest = async <T>(
@@ -23,6 +32,7 @@ export const useApi = () => {
         headers['Authorization'] = `Bearer ${authStore.token}`
       }
 
+      const baseURL = getBaseURL(endpoint)
       const response = await $fetch<ApiResponse<T>>(`${baseURL}${endpoint}`, {
         ...options,
         headers,
@@ -85,7 +95,6 @@ export const useApi = () => {
   }
 
   return {
-    baseURL,
     get,
     post,
     put,
